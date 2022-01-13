@@ -87,7 +87,8 @@ Description : Used to store spark applications. Useful for Dataproc.
 ```
 Function
 Name : gitlab-log
-Description : read log files
+Environment : Node.js 16
+Description : read gitlab runner log files that are uploded by a script called 'gitlab-ci-rsync-logs.sh' hosted directly in the Gitlab server (works only with a self hosted instance).
 ```
 
 During a job execution, logs are written to a local file and sent from the GitLab Runner to Gitlab.  
@@ -115,6 +116,13 @@ gitlab_rails['artifacts_object_store_connection'] = {
 
 That is why a local script is running on the machine hosting gitlab to synchronize logs on a bucket.  
 Once uploaded, a cloud function reads that file and logs each line of it. That way you can add alerts if needed with `google cloud monitoring` ...
+
+#### gitlab-ci-rsync-logs.sh
+
+```
+sudo su
+nohup bash gitlab-ci-rsync-logs.sh > /var/log/gitlab-log/rsync.log 2>&1 &
+```
 
 ### Gitlab Environment Configuration
 
