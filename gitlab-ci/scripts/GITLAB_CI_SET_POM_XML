@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "[INFO] set_pom_xml"
+[[ ! -f "pom.xml" ]] && echo "[ERROR] pom xml does not exist !" && exit 1
+
+pom_version_comment=$(grep -n -m1 ".maven-release-version" pom.xml) || { echo "Undefined .maven-release-version in pom.xml"; exit 1; }
+pom_version_comment_line_number=$(echo -n "$$pom_version_comment" | cut -d":" -f1)
+pom_version_line_number=$((pom_version_comment_line_number + 1))
+pom_version=$(sed -n "$$pom_version_line_number,$$pom_version_line_number p" pom.xml | sed -r 's#.+?<version>(.+)</version>.+?#\1#g')
+echo "[DEBUG] pom_version=$$pom_version"
+
+[[ "$$pom_version" == "$$MAVEN_RELEASE_VERSION" ]] && echo "[ERROR] pom_version and MAVEN_RELEASE_VERSION are the same !" && exit 1
+sed -ri "$$pom_version_line_number s#(<version>)(.+)(</version>)#\1$$MAVEN_RELEASE_VERSION\3#g" pom.xml
+
+echo "[INFO] Pom version updated to $$MAVEN_RELEASE_VERSION"

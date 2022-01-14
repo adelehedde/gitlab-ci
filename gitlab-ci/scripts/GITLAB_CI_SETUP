@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "[INFO] gitlab_ci_setup"
+GITLAB_CI_PROPERTIES_FILE=".gitlab-ci.properties"
+
+pwd
+
+[[ ! -f "$$GITLAB_CI_PROPERTIES_FILE" ]] && echo "[ERROR] $$GITLAB_CI_PROPERTIES_FILE does not exist !" && exit 1
+
+cat "$$GITLAB_CI_PROPERTIES_FILE"
+export GITLAB_CI_GROUP=$(grep -E "^group=" "$$GITLAB_CI_PROPERTIES_FILE" | sed 's/.*=//')
+export GITLAB_CI_NAME=$(grep -E "^name=" "$$GITLAB_CI_PROPERTIES_FILE" | sed 's/.*=//')
+export GITLAB_CI_VERSION=$(grep -E "^version=" "$$GITLAB_CI_PROPERTIES_FILE" | sed 's/.*=//')
+
+if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then GITLAB_RELEASE_VERSION="$$GITLAB_CI_VERSION"; else GITLAB_RELEASE_VERSION="$$GITLAB_CI_VERSION""-""$CI_COMMIT_REF_NAME"; fi
+export GITLAB_RELEASE_VERSION
+
+echo "[DEBUG] GITLAB_CI_GROUP=$$GITLAB_CI_GROUP GITLAB_CI_NAME=$$GITLAB_CI_NAME GITLAB_CI_VERSION=$$GITLAB_CI_VERSION GITLAB_RELEASE_VERSION=$$GITLAB_RELEASE_VERSION"

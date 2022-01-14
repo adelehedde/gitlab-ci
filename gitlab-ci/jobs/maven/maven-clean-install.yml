@@ -1,0 +1,30 @@
+# maven-clean-install
+# compile, test and package your maven project
+#
+# variables:
+#   MAVEN_SETTINGS_FILE_PATH : path to custom maven settings.xml
+#   MAVEN_RELEASE_VERSION : version that will be set inside '<version>...</version>' tag from pom.xml
+
+.maven-clean-install:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/maven-3-jdk-13:1.0.0
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .m2/repository
+  artifacts:
+    paths:
+      - target/*
+    expire_in: 1 day
+  script:
+   - |
+     [[ -z "$MAVEN_SETTINGS_FILE_PATH" ]] && echo "[ERROR] MAVEN_SETTINGS_FILE_PATH cannot be empty !" && exit 1
+     [[ ! -f "$MAVEN_SETTINGS_FILE_PATH" ]] && echo "[ERROR] $MAVEN_SETTINGS_FILE_PATH does not exist !" && exit 1
+     [[ -z "$MAVEN_RELEASE_VERSION" ]] && echo "[ERROR] MAVEN_RELEASE_VERSION cannot be empty !" && exit 1
+   - export MAVEN_RELEASE_VERSION
+   - bash "$GITLAB_CI_SET_POM_XML"
+   - mvn -v
+   - mvn --settings "$MAVEN_SETTINGS_FILE_PATH" help:evaluate -Dexpression=settings.localRepository -q -DforceStdout
+   - mvn clean install --settings "$MAVEN_SETTINGS_FILE_PATH"
+   - ls -la target/ || echo "[INFO] No target folder"

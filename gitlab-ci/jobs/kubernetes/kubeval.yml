@@ -1,0 +1,17 @@
+# kubeval
+# kubernetes yml validator
+#
+# variables:
+#   KUBEVAL_SCAN_DIR : directory to scan (default: src)
+
+.kubeval:
+  image: garethr/kubeval:0.15.0
+  script:
+    - kubeval --version
+    - |
+      [[ -z "$KUBEVAL_SCAN_DIR" ]] && KUBEVAL_SCAN_DIR="src"
+    - kubeval -d "$KUBEVAL_SCAN_DIR"
+    - |
+      kubeval_status=$?
+      [[ "$kubeval_status" -eq 1 ]] && echo "[ERROR] Invalid kubernetes yml detected !" && exit 1
+    - echo "[INFO] Kubernetes yml are valid !"

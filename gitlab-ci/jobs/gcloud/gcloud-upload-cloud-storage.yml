@@ -1,0 +1,42 @@
+# gcloud-upload-cloud-storage
+# upload a file to google cloud storage
+#
+# variables:
+#   GCS_SERVICE_ACCOUNT_FILE_PATH : service account used to authenticate
+#   GCS_INPUT_FILE_PATH : path to the file to upload
+#   GCS_DESTINATION_BUCKET : bucket name (without the 'gs://' prefix)
+#   GCS_DESTINATION_FOLDER : bucket folder
+#   GCS_DESTINATION_FILE_NAME : file name
+#   GCS_DESTINATION_TAG : tag name
+
+.gcloud-upload-cloud-storage:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/gcloud:1.0.0
+  script:
+    - |
+      [[ -z "$GCS_SERVICE_ACCOUNT_FILE_PATH" ]] && echo "[ERROR] GCS_SERVICE_ACCOUNT_FILE_PATH cannot be empty !" && exit 1
+      [[ ! -f "$GCS_SERVICE_ACCOUNT_FILE_PATH" ]] && echo "[ERROR] $GCS_SERVICE_ACCOUNT_FILE_PATH does not exist !" && exit 1
+      [[ -z "$GCS_INPUT_FILE_PATH" ]] && echo "[ERROR] GCS_INPUT_FILE_PATH cannot be empty !" && exit 1
+      [[ ! -f "$GCS_INPUT_FILE_PATH" ]] && echo "[ERROR] $GCS_INPUT_FILE_PATH does not exist !" && exit 1
+      [[ -z "$GCS_DESTINATION_BUCKET" ]] && echo "[ERROR] GCS_DESTINATION_BUCKET cannot be empty !" && exit 1
+      [[ -z "$GCS_DESTINATION_FOLDER" ]] && echo "[ERROR] GCS_DESTINATION_FOLDER cannot be empty !" && exit 1
+      [[ -z "$GCS_DESTINATION_FILE_NAME" ]] && echo "[ERROR] GCS_DESTINATION_FILE_NAME cannot be empty !" && exit 1
+      [[ -z "$GCS_DESTINATION_TAG" ]] && echo "[ERROR] GCS_DESTINATION_TAG cannot be empty !" && exit 1
+    - gcloud version
+    - gcloud auth activate-service-account --key-file="$GCS_SERVICE_ACCOUNT_FILE_PATH"
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then latest_tag="latest"; else latest_tag="latest-$CI_COMMIT_REF_NAME"; fi
+    - |
+      file_name=$(basename "$GCS_INPUT_FILE_PATH")
+      file_extension="${file_name##*.}"
+      echo "[DEBUG] file_name=$file_name file_extension=$file_extension"
+    - |
+      gcs_destination_url="gs://$GCS_DESTINATION_BUCKET/$GCS_DESTINATION_FOLDER/$GCS_DESTINATION_FILE_NAME"
+      gcs_latest_destination_url="$gcs_destination_url-$latest_tag.$file_extension"
+      gcs_destination_url="$gcs_destination_url-$GCS_DESTINATION_TAG.$file_extension"
+    - |
+      echo "[INFO] Uploading $GCS_INPUT_FILE_PATH to $gcs_destination_url"
+      gsutil cp "$GCS_INPUT_FILE_PATH" "$gcs_destination_url"
+    - |
+      echo "[INFO] Uploading $GCS_INPUT_FILE_PATH to $gcs_latest_destination_url"
+      gsutil cp "$GCS_INPUT_FILE_PATH" "$gcs_latest_destination_url"
+

@@ -1,0 +1,30 @@
+# shellcheck
+# linter for shell scripts (file pattern : *.sh)
+#
+# variables:
+#   SHELLCHECK_FORMAT : shellcheck log output format (default: gcc)
+#   SHELLCHECK_SCAN_DIR : directory to scan (default: src)
+
+.shellcheck:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/shellcheck:1.0.0
+  script:
+    - shellcheck --version
+    - |
+      [[ -z "$SHELLCHECK_FORMAT" ]] && SHELLCHECK_FORMAT="gcc"
+      [[ -z "$SHELLCHECK_SCAN_DIR" ]] && SHELLCHECK_SCAN_DIR="src"
+    - |
+      echo "[INFO] SHELLCHECK_FORMAT=$SHELLCHECK_FORMAT"
+      echo "[INFO] SHELLCHECK_SCAN_DIR=$SHELLCHECK_SCAN_DIR"
+    - |
+      [[ ! -f .shellcheckrc ]] && echo "[INFO] Please create '.shellcheckrc' file to disable specific checks (optional)"
+    - |
+      [[ ! -d "$SHELLCHECK_SCAN_DIR" ]] && echo "[ERROR] $SHELLCHECK_SCAN_DIR directory does not exist. Nothing to scan !" && exit 1
+    - |
+      invalid_scripts_counter=0
+      for script in $(find "$SHELLCHECK_SCAN_DIR/" -type f -name "*.sh")
+      do
+        shellcheck --format="$SHELLCHECK_FORMAT" $script || invalid_scripts_counter=$((invalid_scripts_counter + 1))
+      done
+      echo "[INFO] Invalid script files : $invalid_scripts_counter"
+      [[ "$invalid_scripts_counter" -ne 0 ]] && exit 1
+    - echo "[INFO] Scripts are valid !"

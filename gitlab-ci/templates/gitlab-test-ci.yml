@@ -1,0 +1,106 @@
+# Template gitlab-test-ci
+# Test that jobs included are valid
+
+include:
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/bash/bash-test.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/bash/shellcheck.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-default.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-job.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-workflow.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/docker/docker-login-build-push.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/docker/docker-login.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gcloud/gcloud-login.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gcloud/gcloud-upload-cloud-storage.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gitlab/gitlab-check-tag.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gitlab/gitlab-ci-linter.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gitlab/gitlab-tag.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/kubernetes/kubeval.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/maven/maven-clean-install.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/maven/maven-deploy.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/maven/maven-gitlab-tag.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/npm/npm-run-script.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/npm/npm-gitlab-tag.yml'
+
+stages:
+  - test
+
+shellcheck:
+  extends: .shellcheck
+  stage: test
+
+gitlab-job:
+  extends: .gitlab-job
+  stage: test
+  script:
+    - echo "gitlab-job"
+
+docker-login-build-push:
+  extends: .docker-login-build-push
+  stage: test
+
+docker-login:
+  extends: .docker-login
+  stage: test
+
+gcloud-login:
+  extends: .gcloud-login
+  stage: test
+
+gcloud-upload-cloud-storage:
+  extends: .gcloud-upload-cloud-storage
+  stage: test
+
+gitlab-check-tag:
+  extends: .gitlab-check-tag
+  stage: test
+
+gitlab-ci-linter:
+  extends: .gitlab-ci-linter
+  stage: test
+
+gitlab-tag:
+  extends: .gitlab-tag
+  stage: test
+
+kubeval:
+  extends: .kubeval
+  stage: test
+
+maven-clean-install:
+  extends: .maven-clean-install
+  stage: test
+
+maven-deploy:
+  extends: .maven-deploy
+  stage: test
+
+maven-gitlab-tag:
+  extends: .maven-gitlab-tag
+  stage: test
+
+npm-gitlab-tag:
+  extends: .npm-gitlab-tag
+  stage: test
+
+npm-run-script:
+  extends: .npm-run-script
+  stage: test
+

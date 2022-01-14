@@ -1,0 +1,14 @@
+# gcloud-login
+# authenticate service account
+#
+# variables:
+#   GCLOUD_SERVICE_ACCOUNT_FILE_PATH : service account used to authenticate
+
+.gcloud-login:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/gcloud:1.0.0
+  script:
+    - |
+      [[ -z "$GCLOUD_SERVICE_ACCOUNT_FILE_PATH" ]] && echo "[ERROR] GCLOUD_SERVICE_ACCOUNT_FILE_PATH cannot be empty !" && exit 1
+      [[ ! -f "$GCLOUD_SERVICE_ACCOUNT_FILE_PATH" ]] && echo "[ERROR] $GCLOUD_SERVICE_ACCOUNT_FILE_PATH does not exist !" && exit 1
+    - gcloud version
+    - gcloud auth activate-service-account --key-file="$GCLOUD_SERVICE_ACCOUNT_FILE_PATH"

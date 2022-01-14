@@ -1,0 +1,10 @@
+# gitlab-default
+# export variables from .gitlab-ci.properties
+# set default image and default tag for runner
+
+default:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/maven-3-jdk-13:1.0.0
+  tags:
+    - gitlab-ci
+  before_script:
+    - source "$GITLAB_CI_SETUP"

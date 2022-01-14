@@ -1,0 +1,52 @@
+# npm-gitlab-tag
+# commit package.json and package-lock.version with new version and create git tag
+#
+# variables:
+#   NPM_RELEASE_VERSION : version that will be set inside package.json and used as git tag
+#   GITLAB_USER : gitlab username
+#   GITLAB_EMAIL : gitlab email
+#   GITLAB_TOKEN : gitlab token
+
+.npm-gitlab-tag:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/node-16/node-16:1.0.0
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - node_modules
+  artifacts:
+    paths:
+      - dist/*
+    expire_in: 1 day
+  script:
+   - |
+     [[ -z "$NPM_RELEASE_VERSION" ]] && echo "[ERROR] NPM_RELEASE_VERSION cannot be empty !" && exit 1
+     [[ -z "$GITLAB_USER" ]] && echo "[ERROR] GITLAB_USER cannot be empty !" && exit 1
+     [[ -z "$GITLAB_EMAIL" ]] && echo "[ERROR] GITLAB_EMAIL cannot be empty !" && exit 1
+     [[ -z "$GITLAB_TOKEN" ]] && echo "[ERROR] GITLAB_TOKEN cannot be empty !" && exit 1
+   - export NPM_RELEASE_VERSION
+   - bash "$GITLAB_CI_SET_PACKAGE_JSON"
+   - git --version
+   - |
+     git config --global user.name "$GITLAB_USER"
+     git config --global user.email "$GITLAB_EMAIL"
+   - |
+     echo "[INFO] GitLab CI_COMMIT_SHA=$CI_COMMIT_SHA"
+     echo "[INFO] GitLab CI_COMMIT_BRANCH=$CI_COMMIT_BRANCH"
+     echo "[INFO] GitLab CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
+     echo "[INFO] GitLab CI_REPOSITORY_URL=$CI_REPOSITORY_URL"
+   - |
+     git add package.json
+     if [[ -f "package-lock.json" ]]; then git add "package-lock.json"; fi
+     git commit -m "[CI/CD] Created release version $NPM_RELEASE_VERSION"
+   - |
+     git branch "$CI_COMMIT_REF_NAME"
+     git branch
+     git status
+   - git tag -a "$NPM_RELEASE_VERSION" -m "[CI/CD] Created tag $NPM_RELEASE_VERSION"
+   - git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative -n 5
+   - |
+     new_ci_repository_url=$(echo "$CI_REPOSITORY_URL" | sed 's/\(http[s]*\):\/\/[^@]*/\1:\/\/oauth2:'$GITLAB_TOKEN'/')
+     git remote set-url --push origin "$new_ci_repository_url"
+     echo "[DEBUG] Rewrote CI_REPOSITORY_URL to $new_ci_repository_url"
+   - git push --follow-tags origin HEAD:$CI_COMMIT_REF_NAME -o ci.skip
+   

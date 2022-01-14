@@ -1,0 +1,25 @@
+# gitlab-job
+# template to run a job only when scheduled
+# set default tag for runner
+
+# example:
+#
+# include:  
+#   - project: '<gitlab_project_path>/gitlab-ci'
+#     file: '/jobs/default/gitlab-job.yml'
+ 
+# job-name:
+#   extends: .gitlab-job
+#   image: <path_image>
+#   variables:
+#     NODE_ENV: "prod"
+#   script:
+#     - node index.js
+
+.gitlab-job:
+  tags:
+    - gitlab-job
+  only:
+    - schedules
+    
+

@@ -1,0 +1,20 @@
+# gitlab-check-tag
+# check that given tag does not exist
+#
+# variables:
+#   GITLAB_TAG : git tag
+
+.gitlab-check-tag:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/maven-3-jdk-13:1.0.0
+  script:
+    - |
+      [[ -z "$GITLAB_TAG" ]] && echo "[ERROR] GITLAB_TAG cannot be empty !" && exit 1
+    - git --version
+    - |
+      echo "[INFO] GitLab CI_COMMIT_SHA=$CI_COMMIT_SHA"
+      echo "[INFO] GitLab CI_COMMIT_BRANCH=$CI_COMMIT_BRANCH"
+      echo "[INFO] GitLab CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
+    - git fetch --tags origin
+    - | 
+      [[ $(git tag -l "$GITLAB_TAG") ]] && echo "[ERROR] Tag $GITLAB_TAG already exists !" && exit 1
+    - echo "[INFO] Tag $GITLAB_TAG is free to use"

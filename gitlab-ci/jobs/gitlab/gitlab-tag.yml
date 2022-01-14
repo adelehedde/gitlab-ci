@@ -1,0 +1,37 @@
+# gitlab-tag
+# create git tag
+#
+# variables:
+#   GITLAB_USER : gitlab username
+#   GITLAB_EMAIL : gitlab email
+#   GITLAB_TOKEN : gitlab token
+#   GITLAB_TAG : git tag
+
+.gitlab-tag:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/maven-3-jdk-13:1.0.0
+  script:
+    - |
+      [[ -z "$GITLAB_USER" ]] && echo "[ERROR] GITLAB_USER cannot be empty !" && exit 1
+      [[ -z "$GITLAB_EMAIL" ]] && echo "[ERROR] GITLAB_EMAIL cannot be empty !" && exit 1
+      [[ -z "$GITLAB_TOKEN" ]] && echo "[ERROR] GITLAB_TOKEN cannot be empty !" && exit 1
+      [[ -z "$GITLAB_TAG" ]] && echo "[ERROR] GITLAB_TAG cannot be empty !" && exit 1
+    - git --version
+    - |
+      git config --global user.name "$GITLAB_USER"
+      git config --global user.email "$GITLAB_EMAIL"
+    - |
+      echo "[INFO] GitLab CI_COMMIT_SHA=$CI_COMMIT_SHA"
+      echo "[INFO] GitLab CI_COMMIT_BRANCH=$CI_COMMIT_BRANCH"
+      echo "[INFO] GitLab CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
+      echo "[INFO] GitLab CI_REPOSITORY_URL=$CI_REPOSITORY_URL"
+    - |
+      git branch "$CI_COMMIT_REF_NAME"
+      git branch
+      git status
+    - git tag -a "$GITLAB_TAG" -m "[CI/CD] Created tag $GITLAB_TAG"
+    - git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative -n 5
+    - |
+      new_ci_repository_url=$(echo "$CI_REPOSITORY_URL" | sed 's/\(http[s]*\):\/\/[^@]*/\1:\/\/oauth2:'$GITLAB_TOKEN'/')
+      git remote set-url --push origin "$new_ci_repository_url"
+      echo "[DEBUG] Rewrote CI_REPOSITORY_URL to $new_ci_repository_url"
+    - git push --follow-tags origin HEAD:$CI_COMMIT_REF_NAME -o ci.skip

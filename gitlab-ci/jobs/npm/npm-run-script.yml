@@ -1,0 +1,26 @@
+# npm-run-script
+# run the "script" command defined in the scripts section of package.json
+#
+# variables:
+#   NPM_SCRIPT : script to run
+#   NPM_RELEASE_VERSION : version that will be set inside package.json
+
+.npm-run-script:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/node-16/node-16:1.0.0
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - node_modules
+  artifacts:
+    paths:
+      - dist/*
+    expire_in: 1 day
+  script:
+   - |
+     [[ -z "$NPM_SCRIPT" ]] && echo "[ERROR] NPM_SCRIPT cannot be empty !" && exit 1
+     [[ -z "$NPM_RELEASE_VERSION" ]] && echo "[ERROR] NPM_RELEASE_VERSION cannot be empty !" && exit 1
+   - export NPM_RELEASE_VERSION
+   - bash "$GITLAB_CI_SET_PACKAGE_JSON"
+   - npm -v
+   - npm install
+   - npm run "$NPM_SCRIPT"

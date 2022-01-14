@@ -1,0 +1,56 @@
+# gitlab-node
+
+include:
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-default.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-workflow.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/docker/docker-login-build-push.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gitlab/gitlab-check-tag.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/npm/npm-run-script.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/npm/npm-gitlab-tag.yml'
+
+stages:
+  - build
+  - pre-release
+  - release
+
+npm-run-build:
+  extends: .npm-run-script
+  stage: build
+  before_script:
+    - source "$GITLAB_CI_SETUP"
+    - NPM_SCRIPT="build"
+    - NPM_RELEASE_VERSION="$GITLAB_RELEASE_VERSION"
+
+gitlab-check-tag:
+  extends: .gitlab-check-tag
+  stage: pre-release
+  before_script:
+    - source "$GITLAB_CI_SETUP"
+    - GITLAB_TAG="$GITLAB_CI_VERSION"
+
+npm-gitlab-tag:
+  extends: .npm-gitlab-tag
+  stage: release
+  only:
+    - master
+  before_script:
+    - source "$GITLAB_CI_SETUP" 
+    - NPM_RELEASE_VERSION="$GITLAB_CI_VERSION"
+
+docker-login-build-push:
+  extends: .docker-login-build-push
+  stage: release
+  rules:
+    - exists:
+        - Dockerfile
+  before_script:
+    - source "$GITLAB_CI_SETUP"
+    - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+    - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+    - DOCKER_TAG="$GITLAB_RELEASE_VERSION"

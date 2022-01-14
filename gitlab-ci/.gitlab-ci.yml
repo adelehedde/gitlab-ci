@@ -1,0 +1,107 @@
+include:
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-default.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/docker/docker-login-build-push.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gitlab/gitlab-ci-linter.yml'
+
+stages:
+  - build
+  - release
+
+gitlab-ci-linter:
+  extends: .gitlab-ci-linter
+  stage: build
+  before_script:
+    - GITLAB_CI_SCAN_DIRS="templates"
+
+release-debian:
+  extends: .docker-login-build-push
+  stage: release
+  only:
+    refs:
+      - master
+    changes:
+      - docker/debian/*
+  before_script:
+  - cd docker/debian
+  - source "$GITLAB_CI_SETUP"
+  - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+  - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+  - DOCKER_TAG="$GITLAB_RELEASE_VERSION"
+
+release-docker:
+  extends: .docker-login-build-push
+  stage: release
+  only:
+    refs:
+      - master
+    changes:
+      - docker/docker/*
+  before_script:
+  - cd docker/docker
+  - source "$GITLAB_CI_SETUP"
+  - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+  - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+  - DOCKER_TAG="$GITLAB_RELEASE_VERSION"
+
+release-gcloud:
+  extends: .docker-login-build-push
+  stage: release
+  only:
+    refs:
+      - master
+    changes:
+      - docker/gcloud/*
+  before_script:
+  - cd docker/gcloud
+  - source "$GITLAB_CI_SETUP"
+  - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+  - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+  - DOCKER_TAG="$GITLAB_RELEASE_VERSION"
+
+release-maven-3-jdk-13:
+  extends: .docker-login-build-push
+  stage: release
+  only:
+    refs:
+      - master
+    changes:
+      - docker/maven-3-jdk-13/*
+  before_script:
+  - cd docker/maven-3-jdk-13
+  - source "$GITLAB_CI_SETUP"
+  - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+  - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+  - DOCKER_TAG="$GITLAB_RELEASE_VERSION"
+
+release-node-16:
+  extends: .docker-login-build-push
+  stage: release
+  only:
+    refs:
+      - master
+    changes:
+      - docker/node/node-16/*
+  before_script:
+  - cd docker/node/node-16
+  - source "$GITLAB_CI_SETUP"
+  - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+  - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+  - DOCKER_TAG="$GITLAB_RELEASE_VERSION"
+
+release-shellcheck:
+  extends: .docker-login-build-push
+  stage: release
+  only:
+    refs:
+      - master
+    changes:
+      - docker/shellcheck/*
+  before_script:
+  - cd docker/shellcheck
+  - source "$GITLAB_CI_SETUP"
+  - DOCKER_IMAGE_REPOSITORY="$GITLAB_CI_GROUP"
+  - DOCKER_IMAGE_NAME="$GITLAB_CI_NAME"
+  - DOCKER_TAG="$GITLAB_RELEASE_VERSION"

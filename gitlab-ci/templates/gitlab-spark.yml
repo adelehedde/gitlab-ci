@@ -1,0 +1,64 @@
+# gitlab-spark
+
+include:
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-default.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/default/gitlab-workflow.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gcloud/gcloud-upload-cloud-storage.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/gitlab/gitlab-check-tag.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/maven/maven-clean-install.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/maven/maven-deploy.yml'
+  - project: '<gitlab_project_path>/gitlab-ci'
+    file: '/jobs/maven/maven-gitlab-tag.yml'
+
+stages:
+  - build
+  - pre-release
+  - release
+
+maven-clean-install:
+  extends: .maven-clean-install
+  stage: build
+  before_script:
+    - source "$GITLAB_CI_SETUP"
+    - MAVEN_RELEASE_VERSION="$GITLAB_RELEASE_VERSION"
+
+gitlab-check-tag:
+  extends: .gitlab-check-tag
+  stage: pre-release
+  before_script:
+    - source "$GITLAB_CI_SETUP"
+    - GITLAB_TAG="$GITLAB_CI_VERSION"
+
+maven-gitlab-tag:
+  extends: .maven-gitlab-tag
+  stage: release
+  only:
+    - master
+  before_script:
+    - source "$GITLAB_CI_SETUP" 
+    - MAVEN_RELEASE_VERSION="$GITLAB_CI_VERSION"
+
+maven-deploy:
+ extends: .maven-deploy
+ stage: release
+ before_script:
+   - source "$GITLAB_CI_SETUP" 
+   - MAVEN_RELEASE_VERSION="$GITLAB_RELEASE_VERSION"
+
+gcloud-upload-cloud-storage:
+  extends: .gcloud-upload-cloud-storage
+  stage: release
+  before_script:
+    - source "$GITLAB_CI_SETUP"
+    - GCS_SERVICE_ACCOUNT_FILE_PATH="$GITLAB_SERVICE_ACCOUNT_FILE_PATH"
+    - GCS_INPUT_FILE_PATH=$(ls target/*.jar | grep -v "original")
+    - GCS_DESTINATION_BUCKET="$GITLAB_REGISTRY_BUCKET_SPARK"
+    - GCS_DESTINATION_FOLDER="$GITLAB_CI_GROUP/$GITLAB_CI_NAME"
+    - GCS_DESTINATION_FILE_NAME="$GITLAB_CI_NAME"
+    - GCS_DESTINATION_TAG="$GITLAB_RELEASE_VERSION"

@@ -1,0 +1,39 @@
+# gitlab-ci-linter
+# validate gitlab-ci.yml files with gitlab api
+#
+# variables:
+#   GITLAB_BASE_URL
+#   GITLAB_CI_SCAN_DIRS : directories to scan, comma separated (default: templates)
+#   GITLAB_TOKEN : gitlab token
+
+.gitlab-ci-linter:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/maven-3-jdk-13:1.0.0
+  script:
+    - |
+      [[ -z "$GITLAB_BASE_URL" ]] && echo "[ERROR] GITLAB_BASE_URL cannot be empty !" && exit 1
+      [[ -z "$GITLAB_CI_SCAN_DIRS" ]] && GITLAB_CI_SCAN_DIRS="templates"
+      [[ -z "$GITLAB_TOKEN" ]] && echo "[ERROR] GITLAB_TOKEN cannot be empty !" && exit 1
+    - |
+      echo "Directories to process : $GITLAB_CI_SCAN_DIR"
+      IFS=',' read -r -a yml_directories_array <<< "$GITLAB_CI_SCAN_DIRS"
+      invalid_yml_counter=0
+      for directory in "${yml_directories_array[@]}"
+      do
+        echo "Processing $directory"
+        for yml_file in $directory/*.yml
+        do
+          echo "Processing $yml_file"
+          api_response=$(jq --null-input --arg yaml "$(<$yml_file)" '.content=$yaml' \
+          | curl "$GITLAB_BASE_URL/api/v4/ci/lint?include_merged_yaml=true&access_token=$GITLAB_TOKEN" \
+            --fail \
+            --header 'Content-Type: application/json' \
+            --data @-
+          )
+          echo "$api_response"
+          status=$(jq -r ".status" <<< $api_response)
+          [[ $status == "invalid" ]] && invalid_yml_counter=$((invalid_yml_counter + 1))
+        done
+      done
+      echo "Invalid yml files : $invalid_yml_counter"
+      [[ "$invalid_yml_counter" -ne 0 ]] && exit 1
+    -  echo ".yml from [$GITLAB_CI_SCAN_DIRS] are valid !"

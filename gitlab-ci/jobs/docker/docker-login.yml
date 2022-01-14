@@ -1,0 +1,23 @@
+# docker-login
+# login against a Docker registry.
+#
+# variables:
+#   DOCKER_REGISTRY_USER : username
+#   DOCKER_REGISTRY_SERVER : server
+#   DOCKER_REGISTRY_PASSWORD_FILE_PATH : password file path (password-stdin method used to take the password from stdin)
+
+.docker-login:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/docker:1.0.0
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:19.03.12-dind
+  script:
+    - |
+      [[ -z "$DOCKER_REGISTRY_USER" ]] && echo "[ERROR] DOCKER_REGISTRY_USER cannot be empty !" && exit 1
+      [[ -z "$DOCKER_REGISTRY_SERVER" ]] && echo "[ERROR] DOCKER_REGISTRY_SERVER cannot be empty !" && exit 1
+      [[ -z "$DOCKER_REGISTRY_PASSWORD_FILE_PATH" ]] && echo "[ERROR] DOCKER_REGISTRY_PASSWORD_FILE_PATH cannot be empty !" && exit 1
+      [[ ! -f "$DOCKER_REGISTRY_PASSWORD_FILE_PATH" ]] && echo "[ERROR] $DOCKER_REGISTRY_PASSWORD_FILE_PATH does not exist !" && exit 1
+    - docker login -u "$DOCKER_REGISTRY_USER" --password-stdin "$DOCKER_REGISTRY_SERVER" < "$DOCKER_REGISTRY_PASSWORD_FILE_PATH"

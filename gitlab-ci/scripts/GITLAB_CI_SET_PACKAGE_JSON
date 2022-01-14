@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "[INFO] set_package_json"
+[[ ! -f "package.json" ]] && echo "[ERROR] package.json does not exist !" && exit 1
+
+package_version=$(node -e "console.log(require('./package.json').version);") || exit 1
+echo "[DEBUG] package_version=$$package_version"
+
+[[ "$$package_version" == "$$NPM_RELEASE_VERSION" ]] && echo "[ERROR] package_version and NPM_RELEASE_VERSION are the same !" && exit 1
+
+npm --no-git-tag-version version "$$NPM_RELEASE_VERSION"
+
+echo "[INFO] Package version updated to $$NPM_RELEASE_VERSION"

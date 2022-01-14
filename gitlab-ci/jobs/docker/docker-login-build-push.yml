@@ -1,0 +1,48 @@
+# docker-login-build-push
+# login, build and push image on registry
+# latest tag is created on master else latest-<branch>
+#
+# variables:
+#   DOCKER_REGISTRY_USER : username
+#   DOCKER_REGISTRY_SERVER : server
+#   DOCKER_REGISTRY_PASSWORD_FILE_PATH : password file path (password-stdin method used to take the password from stdin)
+#   DOCKER_REGISTRY_REPOSITORY : image repository prefix (can be empty)
+#   DOCKER_IMAGE_REPOSITORY : image repository
+#   DOCKER_IMAGE_NAME : image name
+#   DOCKER_TAG : image tag
+#   DOCKERFILE_BASE_DIRECTORY : default is current directory (optional)
+
+.docker-login-build-push:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/docker:1.0.0
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  services:
+    - docker:19.03.12-dind
+  script:
+    - |
+      [[ -z "$DOCKER_REGISTRY_USER" ]] && echo "[ERROR] DOCKER_REGISTRY_USER cannot be empty !" && exit 1
+      [[ -z "$DOCKER_REGISTRY_SERVER" ]] && echo "[ERROR] DOCKER_REGISTRY_SERVER cannot be empty !" && exit 1
+      [[ -z "$DOCKER_REGISTRY_PASSWORD_FILE_PATH" ]] && echo "[ERROR] DOCKER_REGISTRY_PASSWORD_FILE_PATH cannot be empty !" && exit 1
+      [[ ! -f "$DOCKER_REGISTRY_PASSWORD_FILE_PATH" ]] && echo "[ERROR] $DOCKER_REGISTRY_PASSWORD_FILE_PATH does not exist !" && exit 1
+      [[ -z "$DOCKER_IMAGE_REPOSITORY" ]] && echo "[ERROR] DOCKER_IMAGE_REPOSITORY cannot be empty !" && exit 1
+      [[ -z "$DOCKER_IMAGE_NAME" ]] && echo "[ERROR] DOCKER_IMAGE_NAME cannot be empty !" && exit 1
+      [[ -z "$DOCKER_TAG" ]] && echo "[ERROR] DOCKER_TAG cannot be empty !" && exit 1
+    - docker login -u "$DOCKER_REGISTRY_USER" --password-stdin "$DOCKER_REGISTRY_SERVER" < "$DOCKER_REGISTRY_PASSWORD_FILE_PATH" 
+    - |
+      docker_args=""
+      [[ -n "$DOCKERFILE_BASE_DIRECTORY" ]] && docker_args="-f $DOCKERFILE_BASE_DIRECTORY/Dockerfile"
+    - docker build $docker_args -t "$DOCKER_IMAGE_NAME" .
+    - |
+      if [[ -z "$DOCKER_REGISTRY_REPOSITORY" ]]; then image_repository="$DOCKER_IMAGE_REPOSITORY"; else image_repository="$DOCKER_REGISTRY_REPOSITORY/$DOCKER_IMAGE_REPOSITORY"; fi
+    - target_image="$DOCKER_REGISTRY_SERVER/$image_repository/$DOCKER_IMAGE_NAME"
+    - tag_target_image="$target_image:$DOCKER_TAG"
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then latest_tag="latest"; else latest_tag="latest-$CI_COMMIT_REF_NAME"; fi
+    - latest_target_image="$target_image:$latest_tag"
+    - echo "[INFO] tag_target_image=$tag_target_image latest_target_image=$latest_target_image"
+    - docker tag "$DOCKER_IMAGE_NAME" "$tag_target_image"
+    - docker push "$tag_target_image"
+    - docker tag "$DOCKER_IMAGE_NAME" "$latest_target_image"
+    - docker push "$latest_target_image"

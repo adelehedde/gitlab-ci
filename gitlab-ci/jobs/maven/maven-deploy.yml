@@ -1,0 +1,30 @@
+# maven-deploy
+# deploy project artifact in the configured repository from settings.xml
+# snapshot version is created when the branch is not 'master' to enable artifact re-upload
+#
+# variables:
+#   MAVEN_SETTINGS_FILE_PATH : path to custom maven settings.xml
+#   MAVEN_RELEASE_VERSION : version that will be set inside '<version>...</version>' tag from pom.xml
+
+.maven-deploy:
+  image: <gcp_region>-docker.pkg.dev/<gcp_project_id>/docker-repository/<gitlab_project_path>/gitlab-ci/maven-3-jdk-13:1.0.0
+  variables:
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  cache:
+    key: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - .m2/repository
+  artifacts:
+    paths:
+      - target/*
+    expire_in: 1 day
+  script:
+    - |
+      [[ -z "$MAVEN_SETTINGS_FILE_PATH" ]] && echo "[ERROR] MAVEN_SETTINGS_FILE_PATH cannot be empty !" && exit 1
+      [[ ! -f "$MAVEN_SETTINGS_FILE_PATH" ]] && echo "[ERROR] $MAVEN_SETTINGS_FILE_PATH does not exist !" && exit 1
+      [[ -z "$MAVEN_RELEASE_VERSION" ]] && echo "[ERROR] MAVEN_RELEASE_VERSION cannot be empty !" && exit 1
+    - if [[ "$CI_COMMIT_REF_NAME" != "master" ]]; then MAVEN_RELEASE_VERSION="$MAVEN_RELEASE_VERSION-SNAPSHOT"; fi  
+    - export MAVEN_RELEASE_VERSION
+    - bash "$GITLAB_CI_SET_POM_XML"
+    - find . -name "*.class" -exec touch {} \+
+    - mvn deploy --settings "$MAVEN_SETTINGS_FILE_PATH" -DskipTests=true
