@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-runner-ci
+  namespace: gitlab-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gitlab-runner-ci
+  template:
+    metadata:
+      labels:
+        name: gitlab-runner-ci
+    spec:
+      serviceAccountName: gitlab-admin
+      containers:
+        - args:
+          - run
+          image: gitlab/gitlab-runner:alpine-v13.3.0
+          imagePullPolicy: Always
+          name: gitlab-runner-ci
+          resources:
+            requests:
+              cpu: "100m"
+            limits:
+              cpu: "100m"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/gitlab-runner/config.toml
+              readOnly: true
+              subPath: config.toml
+            - name: gitlab-runner-secrets
+              mountPath: "/etc/gitlab-runner/gitlab-runner-sa"
+              subPath: gitlab-runner-sa
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: gitlab-runner-ci-configmap
+        - name: gitlab-runner-secrets
+          secret:
+            secretName: gitlab-runner-credentials
+            items:
+              - key: gitlab-runner-sa
+                path: gitlab-runner-sa
+      restartPolicy: Always

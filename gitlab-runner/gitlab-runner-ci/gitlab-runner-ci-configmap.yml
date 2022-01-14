@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitlab-runner-ci-configmap
+  namespace: gitlab-runner
+data:
+  config.toml: |-
+    concurrent = 4
+    [[runners]]
+      name = "gitlab-ci"
+      url = "https://<gitlab_base_url>/"
+      token = "<token>"
+      executor = "kubernetes"
+      [runners.cache]
+        Type = "gcs"
+        Shared = false
+      [runners.cache.gcs]
+        CredentialsFile = "/etc/gitlab-runner/gitlab-runner-sa"
+        BucketName = "<gcp_project_id>-gitlab-cache"
+      [runners.kubernetes]
+        namespace = "gitlab-runner"
+        privileged = true
+        poll_timeout = 180
+        pull_policy = "always"
+        cpu_request = "1"
+        service_cpu_request = "200m"

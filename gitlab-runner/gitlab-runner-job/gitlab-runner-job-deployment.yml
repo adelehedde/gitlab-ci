@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-runner-job
+  namespace: gitlab-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gitlab-runner-job
+  template:
+    metadata:
+      labels:
+        name: gitlab-runner-job
+    spec:
+      serviceAccountName: gitlab-admin
+      containers:
+        - args:
+          - run
+          image: gitlab/gitlab-runner:alpine-v13.3.0
+          imagePullPolicy: Always
+          name: gitlab-runner-job
+          resources:
+            requests:
+              cpu: "100m"
+            limits:
+              cpu: "100m"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/gitlab-runner/config.toml
+              readOnly: true
+              subPath: config.toml
+      volumes:
+        - name: config
+          configMap:
+            name: gitlab-runner-job-configmap
+      restartPolicy: Always
