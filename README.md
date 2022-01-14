@@ -117,13 +117,6 @@ gitlab_rails['artifacts_object_store_connection'] = {
 That is why a local script is running on the machine hosting gitlab to synchronize logs on a bucket.  
 Once uploaded, a cloud function reads that file and logs each line of it. That way you can add alerts if needed with `google cloud monitoring` ...
 
-#### gitlab-ci-rsync-logs.sh
-
-```
-sudo su
-nohup bash gitlab-ci-rsync-logs.sh > /var/log/gitlab-log/rsync.log 2>&1 &
-```
-
 ### Gitlab Environment Configuration
 
 #### Gitlab-ci User

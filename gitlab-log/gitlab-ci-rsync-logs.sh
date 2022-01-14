@@ -1,7 +1,7 @@
 #!/bin/bash
 
 GITLAB_LOGS_DIRECTORY="/var/opt/gitlab/gitlab-rails/shared/artifacts"
-GITLAB_LOGS_BUCKET="gs://<project_id>-gitlab-logs"
+GITLAB_LOGS_BUCKET="gs://<gcp_project_id>-gitlab-logs"
 GITLAB_SERVICE_ACCOUNT_FILE_PATH="/path/to/gitlab-service-account.json"
 DELAY_SECONDS=60
 
