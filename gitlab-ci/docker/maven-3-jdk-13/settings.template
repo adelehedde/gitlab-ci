@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+   
+  <pluginGroups> 
+  </pluginGroups>
+  
+  <proxies>
+  </proxies>
+  
+  <servers>
+    <server>
+      <id>artifact-registry</id>
+      <configuration>
+        <httpConfiguration>
+          <get>
+            <usePreemptive>true</usePreemptive>
+          </get>
+          <head>
+            <usePreemptive>true</usePreemptive>
+          </head>
+          <put>
+            <params>
+              <property>
+                <name>http.protocol.expect-continue</name>
+                <value>false</value>
+              </property>
+            </params>
+          </put>
+        </httpConfiguration>
+      </configuration>
+      <username>_json_key_base64</username>
+      <password>cat <service_account.json> | base64</password>
+    </server>
+  </servers>
+
+  <mirrors>
+  </mirrors>
+  
+  <profiles>
+    <profile>
+	  <id>artifact-registry</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+ 
+      <repositories>
+         <repository>
+           <id>artifact-registry</id>
+           <url>https://<gcp_region>-maven.pkg.dev/<gcp_project_id>/maven-repository</url>
+           <releases>
+             <enabled>true</enabled>
+           </releases>
+           <snapshots>
+             <enabled>true</enabled>
+           </snapshots>
+         </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+</settings>

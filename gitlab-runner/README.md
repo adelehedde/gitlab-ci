@@ -122,3 +122,15 @@ Generic runner used to run a job
 kubectl apply -f gitlab-runner-job/gitlab-runner-job-configmap.yml
 kubectl apply -f gitlab-runner-job/gitlab-runner-job-deployment.yml
 ```
+
+## Test runners
+
+You can schedule a pipeline to assert everything is working.  
+Have a look to the .gitlab-ci.yml file.
+
+```
+# CI / CD > Schedules > New schedule
+Description : Check Gitlab Runners State
+Custom Cron : 30 8 * * *
+Target branch : master
+```
