@@ -101,6 +101,7 @@ Description : Used to store spark applications. Useful for Dataproc.
 ```
 
 ### Cloud Functions
+> Optional. See gitlab-log folder
 
 During a job execution, logs are written to a local file and sent from the GitLab Runner to Gitlab.  
 As the logs are not written to stdout, we cannot see logs on `google cloud monitoring` web interface. So we cannot create alerts if needed.
@@ -125,7 +126,7 @@ gitlab_rails['artifacts_object_store_connection'] = {
 }
 ```
 
-That is why a local script is running on the machine hosting gitlab to synchronize logs on a bucket.  
+That is why you need to run a local script on the machine hosting gitlab to synchronize logs on a bucket.  
 Once uploaded, a cloud function reads that file and logs each line of it. That way you can add alerts if needed with `google cloud monitoring` ...
 
 ### Gitlab Environment Configuration
@@ -158,19 +159,19 @@ It is recommended to set these variables once in the parent Gitlab Group so each
 | Type     | Key                                  | Value | Description |
 | :---:    | :---:                                | :---: | :---:       |
 | Variable | DOCKER_AUTH_CONFIG                   | Result of `cat ~/.docker/config.json` | Used to pull image from a private container registry : see 'image' keyword from .gitlab-ci.yml <br> The json can be printed after a docker login inside the .gitlab-ci.yml |
-| File     | DOCKER_REGISTRY_PASSWORD_FILE_PATH   | Result of `cat <service_account.json> | base64` | Used to login over a docker registry (see service account created before) |
-| Variable | DOCKER_REGISTRY_REPOSITORY           | Example : <gcp_project_id>/docker-repository | |
-| Variable | DOCKER_REGISTRY_SERVER               | Example : <gcp_region>-docker.pkg.dev | |
+| File     | DOCKER_REGISTRY_PASSWORD_FILE_PATH   | Result of `cat <gitlab-ci_service_account.json> &#124; base64` | Used to login over a docker registry (see service account created before) |
+| Variable | DOCKER_REGISTRY_REPOSITORY           | <gcp_project_id>/docker-repository | |
+| Variable | DOCKER_REGISTRY_SERVER               | <gcp_region>-docker.pkg.dev | |
 | Variable | DOCKER_REGISTRY_USER                 | _json_key_base64 | See GCP documentation |
 | Variable | GITLAB_BASE_URL                      | <gitlab_base_url> | |
 | Variable | GITLAB_EMAIL                         | <gitlab-ci-email> | |
-| File     | GITLAB_SERVICE_ACCOUNT_FILE_PATH | | |
+| File     | GITLAB_SERVICE_ACCOUNT_FILE_PATH | Copy/Paste service account created above | |
 | Variable | GITLAB_TOKEN | <gitlab_token> | See impersonation token created above |
 | Variable | GITLAB_USER | gitlab-ci | |
-| Variable | MAVEN_REGISTRY_REPOSITORY_URL | Example : https://<gcp_region>-maven.pkg.dev/<gcp_project_id>/maven-repository | |
+| Variable | MAVEN_REGISTRY_REPOSITORY_URL | https://<gcp_region>-maven.pkg.dev/<gcp_project_id>/maven-repository | |
 | File     | MAVEN_SETTINGS_FILE_PATH | Copy/Paste and adapt file gitlab-ci/docker/maven-3-jdk-13/settings.template | |
 | File     | GITLAB_CI_SET_PACKAGE_JSON | Copy/Paste script : gitlab-ci/scripts/GITLAB_CI_SET_PACKAGE_JSON | Script used to update package.json version |
 | File     | GITLAB_CI_SET_POM_XML | Copy/Paste script : gitlab-ci/scripts/GITLAB_CI_SET_POM_XML | Script used to update pom.xml version |
 | Variable | GITLAB_CI_SETUP | Copy/Paste script : gitlab-ci/scripts/GITLAB_CI_SETUP | Script used to set environment variables from .gitlab-ci.properties |
-| Variable | GITLAB_REGISTRY_BUCKET_SPARK | Example : <gcp_project_id>-registry-spark-repository | Google Cloud Storage bucket |
+| Variable | GITLAB_REGISTRY_BUCKET_SPARK | <gcp_project_id>-registry-spark-repository | Google Cloud Storage bucket |
 

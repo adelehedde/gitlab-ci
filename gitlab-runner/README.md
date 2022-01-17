@@ -4,7 +4,7 @@
 ## Register a runner
 
 First you need to obtain your gitlab url and your registration token :  
-Go to `Admin Area > Overview > Runners` (https://<gitlab_base_url>/admin/runners)
+Go to `Admin Area > Overview > Runners` (<gitlab_base_url>/admin/runners)
 
 The easiest way to register a Runner is to start a Docker container locally with the Runner :
 ```
@@ -19,7 +19,7 @@ gitlab-runner register
 Complete the form with your gitlab url and registration token :
 ```
 Please enter the gitlab-ci coordinator URL (e.g. https://gitlab.com/):
-https://<gitlab_base_url>/
+<gitlab_base_url>
 
 Please enter the gitlab-ci token for this runner:
 <registration_token>

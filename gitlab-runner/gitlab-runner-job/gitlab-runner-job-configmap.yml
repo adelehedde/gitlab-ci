@@ -8,7 +8,7 @@ data:
     concurrent = 4
     [[runners]]
       name = "gitlab-job"
-      url = "https://<gitlab_base_url>/"
+      url = "<gitlab_base_url>"
       token = "<token>"
       executor = "kubernetes"
       [runners.kubernetes]
