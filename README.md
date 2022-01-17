@@ -159,7 +159,7 @@ It is recommended to set these variables once in the parent Gitlab Group so each
 | Type     | Key                                  | Value | Description |
 | :---:    | :---:                                | :---: | :---:       |
 | Variable | DOCKER_AUTH_CONFIG                   | Result of `cat ~/.docker/config.json` | Used to pull image from a private container registry : see 'image' keyword from .gitlab-ci.yml <br> The json can be printed after a docker login inside the .gitlab-ci.yml |
-| File     | DOCKER_REGISTRY_PASSWORD_FILE_PATH   | Result of `cat <gitlab-ci_service_account.json> &#124; base64` | Used to login over a docker registry (see service account created before) |
+| File     | DOCKER_REGISTRY_PASSWORD_FILE_PATH   | Result of `cat <gitlab-ci_service_account.json> \| base64` | Used to login over a docker registry (see service account created before) |
 | Variable | DOCKER_REGISTRY_REPOSITORY           | <gcp_project_id>/docker-repository | |
 | Variable | DOCKER_REGISTRY_SERVER               | <gcp_region>-docker.pkg.dev | |
 | Variable | DOCKER_REGISTRY_USER                 | _json_key_base64 | See GCP documentation |
