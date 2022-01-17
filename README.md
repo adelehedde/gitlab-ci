@@ -83,20 +83,20 @@ Bucket names are unique. So adapt the names ...
 
 ```
 Bucket
-Name : <project_id>-gitlab-cache
+Name : <gcp_project_id>-gitlab-cache
 Description : Used to cache dependencies while building applications
 ```
 
 ```
 Bucket
-Name : <project_id>-gitlab-logs
+Name : <gcp_project_id>-gitlab-logs
 Description : Used to store logs from gitlab runner jobs
 ```
 
 You can also create buckets to deploy your applications :
 ```
 Bucket
-Name : <project_id>-registry-spark-repository
+Name : <gcp_project_id>-registry-spark-repository
 Description : Used to store spark applications. Useful for Dataproc.
 ```
 
